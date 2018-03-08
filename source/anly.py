@@ -141,7 +141,7 @@ def get_R0(k):
         R0 = 1.88e18 # Radius scale in cm = (1e52 erg/(proton mass cm^{-3} * c^2)
     elif (k == 2):
         R0 = 2.23e19 # Radius scale in cm = (1e52 erg/(5e11 g/cm * c^2))
-
+    return R0
 
 def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0,
             rmin = 1e-8, rmax = 1e8, N = 10000, filename = 'output.txt', physical = True, modeltype = 'DL'):
@@ -181,7 +181,7 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0,
     rprev = 0          
     dr = 0
     outfile = open(filename,'w')
-    headerline = "r               u               upeak           ushock           gamma           theta           mswept          t                tobs    ushockfactor\n"
+    headerline = "r               u               upeak           ushock          gamma           theta           mswept          t                tobs          ushockfactor\n"
     outfile.write(headerline)
     
     rlist  = logspace(log10(rmin),log10(rmax),N)
