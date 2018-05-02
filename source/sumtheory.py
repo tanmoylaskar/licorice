@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../GAMMA/')
+sys.path.append('../../GAMMA/')
 import gstable2
 from matplotlib import gridspec
 
@@ -27,19 +27,19 @@ params_161219B = gstable2.Physparams(\
         k     = 0,
         p     = 2.1,
         z     = 0.1475,
-        e_e   = 0.9,
-        e_b   = 0.006,
-        n_0   = 3.2e-4,
+        e_e   = 0.925,
+        e_b   = 0.05139,
+        n_0   = 3.6e-4,
         Astar = 0.1,
-        E52   = 0.46,
-        t_jet = 33.0,
-        A_B   = 0.02,
+        E52   = 0.47,
+        t_jet = 31.49,
+        A_B   = 0.036,
         zeta  = 1.0)
 
-#params = params_161219B
+params = params_161219B
 k      = params.k
 G0     = 1e7
-theta0 = 0.1 #10.*np.pi/180.#0.05
+theta0 = 0.26 #10.*np.pi/180.#0.05
 E52    = params.E52
 z      = params.z
 
@@ -55,29 +55,29 @@ def calcparams(k):
         A      = params.n_0
         AA     = A*1.67e-24 
         rmax   = 1e3
-        #tjet   = 7.9*(1.+z)*(E52/A)**(1./3.)*(q0(k)*theta0)**(8./3.)
+        #tjet   = 7.9*(1.+z)*(E52/A)**(1./3.)*(Qk(k)*theta0)**(8./3.)
         tjet_oldtheory = 120.*(E52/A)**(1./3.)\
                              *theta0**(8./3.)*(1.+z) # Sari, Piran, Halpern calculation of tjet
     elif (k == 2):
         A      = params.Astar
         AA     = A*5e11
         rmax   = 1e15
-        #tjet   = 9.5*(1.+z)*(E52/A)*(q0(k)*theta0)**4
+        #tjet   = 9.5*(1.+z)*(E52/A)*(Qk(k)*theta0)**4
         tjet_oldtheory = 625.*(E52/A)*theta0**4.*(1.+z) # Chevalier and Li (2000) calculation of tjet    
     
     # The following is a factor of ~ 1.23 too small
-    tjet = (1.+z)*(  (3.-k)**(4.-k)*E52*1e52*(q0(k)*theta0)**(8.-2*k) \
+    tjet = (1.+z)*(  (3.-k)**(4.-k)*E52*1e52*(Qk(k)*theta0)**(8.-2*k) \
                    / (2**(6.-k)*(4.-k)**(3.-k)*(17.-4*k)**(3.-k)*pi*AA*3e10**(5.-k) ) )**(1./(3.-k)) / 86400.
 
-    delta_s = 0.5*(3.-k)*(1.+q0(k)/p0(k))
+    delta_s = 0.5*(3.-k)*(1.+Qk(k)/Pk(k))
     delta_L = 0.5*(3.-k)/(4.-k)
-    delta_R = 0.5/(1.+1./((3.-k)*(1.+q0(k)/p0(k))))
+    delta_R = 0.5/(1.+1./((3.-k)*(1.+Qk(k)/Pk(k))))
     f_kink  = ((2*delta_L+1.)/(2*delta_R+1))**(delta_R/(2*delta_R+1.))
     f_k     = ((17.-4*k)/(3.-k))**0.5    
     unr     = (1.+delta_s)/(2.+4*delta_s)
-    tnr     = tjet*(unr*q0(k)*theta0/(f_kink*f_k))**(-2.0*(1.+ 1./((3.-k)*(1.+q0(k)/p0(k)))))
-    #tnr    = tjet*(q0(k)*theta0)**(-2.0*(1.+ 1./((3.-k)*(1.+q0(k)/p0(k)))))
-    delta_theta = q0(k)*(3.-k)/p0(k)
+    tnr     = tjet*(unr*Qk(k)*theta0/(f_kink*f_k))**(-2.0*(1.+ 1./((3.-k)*(1.+Qk(k)/Pk(k)))))
+    #tnr    = tjet*(Qk(k)*theta0)**(-2.0*(1.+ 1./((3.-k)*(1.+Qk(k)/Pk(k)))))
+    delta_theta = Qk(k)*(3.-k)/Pk(k)
     tsph    = tnr*theta0**(-1./delta_theta)*(tjet/tnr)**(1./(1.+2*delta_theta))
 
     # Calculation of tsph
@@ -107,13 +107,14 @@ def Gammabeta_fit_k(t, tjet, tnr, tsph, Gammajet, sj1, sj2, s_nr, s_sph, G2, G3,
     return Gammabeta_fit(k, t, tjet, tnr, tsph, Gammajet, sj1, sj2, s_nr, s_sph, G2, G3, kinkcor)
 
 par0 = [tjet_theory,max(tnr_theory/100.,tjet_theory*1.05),
-        tsph_theory,1./(q0(k)*theta0),50.,1.0,0.2, 1.,1.0,1.0, 1.0]
+        tsph_theory,1./(Qk(k)*theta0),50.,1.0,0.2, 1.,1.0,1.0, 1.0]
 lbounds = (0.8*tjet_theory,tjet_theory*1.05,tjet_theory*1e2,1e-6, 10.,0.1,0.05,0.1,0.6,0.6,0.7)
 ubounds = (1.2*tjet_theory,max(tjet_theory*1e3,tnr_theory), 
            max(tjet_theory*1e5,tsph_theory),1e+6,100.,40.,40., 40.,1.2,1.2, 1.2)
 
 if (theta0 < 0.3):
     ''' Cant seem to be able to fit for larger angles'''
+    from scipy.optimize import curve_fit
     popt, pcov = curve_fit(Gammabeta_fit_k, x, y, sigma=y*0.001, p0=par0, bounds=(lbounds,ubounds))
     tjet, tnr, tsph, Gtjet, sj1, sj2, s_nr, s_sph, G2, G3, kinkcor = popt
     #print popt
