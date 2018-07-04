@@ -167,7 +167,7 @@ def nuelevenofnuc(params, nuc):
 def Frad(gammamin, ush, B, mswept, theta, DL, params, numax, sigma_T, c, mu0, m_p, mJy):
     Ne = mswept/m_p
     Omega = 4.*pi*(sin(0.5*theta)**2.)
-    zeta  = zeta_beam(ush)
+    zeta  = zeta_beam(ush, offaxis=offaxis)
     return mJy*Gammaofu(ush)**2*(1.+betaofu(ush))*(4./3.)*sigma_T*c*(gammamin**2)*(B**2/(2.*mu0))*Ne/(4*pi*DL**2*numax)/Omega * zeta #/ (1. + 2*pi/(Omega*Gammaofu(ush)**2))
 
 def FmaxofFrad(params, nuseven, numax, nuc, Frad):
@@ -256,20 +256,28 @@ def spectrum_all(params, nua, num, nuc, nufive, nuseven, Fmax, q):
     F = (spectrum4*fastcooling4 + spectrum5*fastcooling5 + spectrum1*slowcooling) * opticallythin + spectrum2 * opticallythick
     return F
 
-def zeta_beam(ush):
+def zeta_beam(ush, offaxis=False):
     '''Calculate the beaming correction'''
     # Calculate beaming correction
     w = 3
     Gammaf = Gammaofu(ush)
     betaf  = betaofu(ush)    
-    inv_one_minus_beta = Gammaf**2*(1.+betaf)
-    zeta_beam_jet = (inv_one_minus_beta**w - (1./(1.-betaf*cos(theta)))**w) / \
-                    (inv_one_minus_beta**w - (1./(1.+betaf))**w)
 
-    betaf  = -betaofu(ush)    
-    inv_one_minus_beta = Gammaf**2*(1.+betaf)
-    zeta_beam_counterjet = (inv_one_minus_beta**w - (1./(1.-betaf*cos(theta)))**w) / \
-                           (inv_one_minus_beta**w - (1./(1.+betaf))**w)
+    if (offaxis):
+        Omega = 4.*pi*(sin(0.5*theta)**2.)
+        mu                = 1.-cos(theta)
+        one_minus_beta    = 1./(Gammaf**2*(1.+betaf))
+        one_minus_beta_mu = (1.-mu**2 + mu**2/Gammaf**2)/(1.+betaf*mu)
+        zeta_beam_jet     = (Omega / (4.*np.pi)) * (one_minus_beta/one_minus_beta_mu)**4
+    else:    
+        inv_one_minus_beta = Gammaf**2*(1.+betaf)
+        zeta_beam_jet = (inv_one_minus_beta**w - (1./(1.-betaf*cos(theta)))**w) / \
+                        (inv_one_minus_beta**w - (1./(1.+betaf))**w)
+
+        betaf  = -betaofu(ush)    
+        inv_one_minus_beta = Gammaf**2*(1.+betaf)
+        zeta_beam_counterjet = (inv_one_minus_beta**w - (1./(1.-betaf*cos(theta)))**w) / \
+                               (inv_one_minus_beta**w - (1./(1.+betaf))**w)
 
     return zeta_beam_jet #+ zeta_beam_counterjet
     
@@ -349,7 +357,7 @@ F2    = gstable2.F_b_ext(params, 2, tobs)
 F11   = gstable2.F_b_ext(params, 11, tobs)
 
 plotfig  = True
-plotzeta = False
+plotzeta = True
 if plotfig:
     figure()
     subplot(211)
@@ -399,7 +407,7 @@ if plotfig:
         fig, ax1 = plt.subplots(1)
         zetacolor = 'red'; zetals = '-'; Omegacolor = 'k'; Omegals = '--'; approxcolor = 'orange'; approxls = '-.'
         artistlist = []; namelist = [r'Beaming correction, $\zeta_{\rm beam}$',r'Jet solid angle, $\Omega/4\pi$']
-        zeta       = zeta_beam(ushock)
+        zeta       = zeta_beam(ushock, offaxis=offaxis)
         Omega      = 4.*pi*sin(theta/2)**2
         Omegaobs   = pi/Gammaofu(ushock)**2
         zetaapprox = 1-(Omegaobs/Omega)

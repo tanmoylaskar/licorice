@@ -10,15 +10,19 @@ figtype = '.eps'
 fontsize = 18
 execfile("anly.py")
 
+G0     = 500
+theta0 = 5.*np.pi/180. #0.26 #10.*np.pi/180.#0.05
+Omega = 4.*pi*(sin(0.5*theta0)**2.)
+
 params = gstable2.Physparams(\
         k     = 0,
         p     = 2.1,
         z     = 1.,
         e_e   = 0.1,
         e_b   = 0.01,
-        n_0   = 1.,
+        n_0   = 1e-3,
         Astar = 0.1,
-        E52   = 1e+3,
+        E52   = 1e-2*4*np.pi/Omega,
         t_jet = 1.0,
         A_B   = 0.0,
         zeta  = 1.0)
@@ -36,12 +40,12 @@ params_161219B = gstable2.Physparams(\
         A_B   = 0.036,
         zeta  = 1.0)
 
-params = params_161219B
+#params = params_161219B
 k      = params.k
-G0     = 1e7
-theta0 = 0.26 #10.*np.pi/180.#0.05
 E52    = params.E52
 z      = params.z
+offaxis = True
+
 
 if (k==0):
     profile = 'ISM'
@@ -97,11 +101,19 @@ tsph_theory = tsph
 data = calcall(k=k,E52=E52,A=A,G0=G0,theta0=theta0,rmin=rmin,rmax=rmax,z=z,N=1000,physical=True,modeltype='DL')
 u     = data['upeak']
 theta = data['theta']
+Gamma = data['gamma']
+R = data['r']
+tlab = data['t']/(1.+params.z)
+if (offaxis):
+    tobs = data['tobsoffaxis']
+else:
+    tobs  = data['tobs']
+
 if (k == 0):
     sel = (u < G0/1e4)
 elif (k == 2):
     sel = (u < G0/1e5)# & (u > 3e-6)
-x = data['tobs'][sel]; y = u[sel]
+x = tobs[sel]; y = u[sel]
 
 def Gammabeta_fit_k(t, tjet, tnr, tsph, Gammajet, sj1, sj2, s_nr, s_sph, G2, G3, kinkcor):
     return Gammabeta_fit(k, t, tjet, tnr, tsph, Gammajet, sj1, sj2, s_nr, s_sph, G2, G3, kinkcor)
@@ -166,7 +178,6 @@ if (plotfig and theta0 < 0.3):
     plt.show()
     savefig("uavg_fit_"+profile+figtype)
 
-tobs = data['tobs']; tlab = data['t']/(1.+params.z); Gamma = data['gamma']; R = data['r']
 params.t_jet = tjet_oldtheory
 params.updatejetparams()
 #params.t_nr = tnr_theory

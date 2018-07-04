@@ -181,7 +181,7 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0,
     rprev = 0          
     dr = 0
     outfile = open(filename,'w')
-    headerline = "r               u               upeak           ushock          gamma           theta           mswept          t                tobs          ushockfactor\n"
+    headerline = "r               u               upeak           ushock          gamma           theta           mswept          t                tobs          tobsoffaxis    ushockfactor\n"
     outfile.write(headerline)
     
     rlist  = logspace(log10(rmin),log10(rmax),N)
@@ -206,13 +206,14 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0,
         rprev = r
         mswept = f*M0 * 1.11e31                # swept-up mass in g
         theta_rhoads = min(theta_rhoads+get_dt(c, ushock, dr)/(1.732*t*gamma_sh), np.pi/2) # opening angle for Rhoads (1999)
+        mu = 1.-np.cos(theta)
         
         if (physical):
-            output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}\n".format\
-                      (r*R0, u, upeak, ushock, gamma, theta, mswept, t*t0, (1.+z)*t0*(t-r/c)/86400., ushockfactor)
+            output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}\n".format\
+                      (r*R0, u, upeak, ushock, gamma, theta, mswept, t*t0, (1.+z)*t0*(t-r/c)/86400., (1.+z)*t0*t*(1.-mu)/86400., ushockfactor)
         else:
-            output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}\n".format\
-                      (r, u, upeak, ushock, gamma, theta, mwept, t, t-r/c, ushockfactor)
+            output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}\n".format\
+                      (r, u, upeak, ushock, gamma, theta, mwept, t, t-r/c, t*(1.-mu), ushockfactor)
 
         outfile.write(output)
 
