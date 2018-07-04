@@ -10,14 +10,15 @@ figtype = '.eps'
 fontsize = 18
 execfile("anly.py")
 
-G0     = 500
-theta0 = 5.*np.pi/180. #0.26 #10.*np.pi/180.#0.05
-Omega = 4.*pi*(sin(0.5*theta0)**2.)
+G0       = 5
+theta0   = 5.*np.pi/180. #0.26 #10.*np.pi/180.#0.05
+thetaobs = 0.5
+Omega    = 4.*pi*(sin(0.5*theta0)**2.)
 
 params = gstable2.Physparams(\
         k     = 0,
         p     = 2.1,
-        z     = 1.,
+        z     = 0.01,
         e_e   = 0.1,
         e_b   = 0.01,
         n_0   = 1e-3,
@@ -98,7 +99,7 @@ tnr_theory  = tnr
 tsph_theory = tsph
 
 # Fit u(tobs) with power laws
-data = calcall(k=k,E52=E52,A=A,G0=G0,theta0=theta0,rmin=rmin,rmax=rmax,z=z,N=1000,physical=True,modeltype='DL')
+data = calcall(k=k,E52=E52,A=A,G0=G0,theta0=theta0,thetaobs=thetaobs,rmin=rmin,rmax=rmax,z=z,N=1000,physical=True,modeltype='DL')
 u     = data['upeak']
 theta = data['theta']
 Gamma = data['gamma']

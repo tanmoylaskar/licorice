@@ -143,7 +143,7 @@ def get_R0(k):
         R0 = 2.23e19 # Radius scale in cm = (1e52 erg/(5e11 g/cm * c^2))
     return R0
 
-def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0,
+def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0, thetaobs = 0.2, 
             rmin = 1e-8, rmax = 1e8, N = 10000, filename = 'output.txt', physical = True, modeltype = 'DL'):
     """Calculate the 4-velocity of the shock as a function of blastwave radius ($r$), given
     $\theta_0$: initial opening angle of the jet
@@ -206,7 +206,7 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0,
         rprev = r
         mswept = f*M0 * 1.11e31                # swept-up mass in g
         theta_rhoads = min(theta_rhoads+get_dt(c, ushock, dr)/(1.732*t*gamma_sh), np.pi/2) # opening angle for Rhoads (1999)
-        mu = 1.-np.cos(theta)
+        mu = cos(thetaobs)
         
         if (physical):
             output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}\n".format\
