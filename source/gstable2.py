@@ -1,3 +1,5 @@
+applyIC = False
+
 def R(params, t):
     '''The blast wave radius in cm at time, t from the BM solution'''
     E52   = params.E52
