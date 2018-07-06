@@ -1,3 +1,21 @@
+def dens(params, R):
+    '''Returns the density in g/cm^3 at distance R (in cm) in the burster frame'''
+    k = params.k    
+    import numpy as np
+    if (k == 0):
+        m_p = 1.673e-24 # Proton mass in g
+        return params.n_0*m_p*np.ones_like(R)
+    elif (k == 2):
+        return params.Astar*5e11*R**(-2.)
+    else:
+        raise ValueError('k must be 0 or 2 for computation of density')
+
+def e_ebar(params):
+    e_e = params.e_e / params.zeta
+    p   = params.p
+    x = e_e*(p-2)/(p-1.)
+    return x
+
 def readdata(filename):
     from astropy.io import ascii as asciireader
     data = asciireader.read(filename)
@@ -23,7 +41,7 @@ def e2_calc(ushock, rho1, X, r, c):
     return (r-1.)*(1.-X**(-1.))*rho1*ushock**2*c**2. / (1. + r*ushock**2/X**2)
 
 def gammaminofe2(e2, rho2, m_p, m_e):
-    return gstable2.e_ebar(params)*e2*(m_p/m_e)/(rho2*c**2)
+    return e_ebar(params)*e2*(m_p/m_e)/(rho2*c**2)
 
 def gammacool(params,t,B,ushock,sigma_T,m_e,c,mu0):
     import numpy as np
@@ -302,7 +320,7 @@ if (useSI):
     mJy    = 1e29                            # To convert W/m^2.Hz into mJy
     d      = params.dL28*1e26                # Luminosity distance in m
     rshock = R*1e-2                          # Shock radius in m
-    rho1   = gstable2.dens(params, R)*1e3    # Pre-shock density in kg/m^3
+    rho1   = dens(params, R)*1e3    # Pre-shock density in kg/m^3
     mswept = data['mswept']*1e-3             # Swept up mass in kg
     Eiso   = params.E52*1e52/1e7             # Shock energy in J
 else:
@@ -317,7 +335,7 @@ else:
     mJy    = 1e26                            # To convert erg/cm^2.s.Hz into mJy
     d      = params.dL28*1e28                # Luminosity distance in cm
     rshock = R                               # Shock radius in cm
-    rho1   = gstable2.dens(params, R)        # Pre-shock density in g/cm^3
+    rho1   = dens(params, R)        # Pre-shock density in g/cm^3
     mswept = data['mswept']                  # Swept up mass in g
     Eiso   = params.E52*1e52                 # Shock energy in erg
     
@@ -341,20 +359,11 @@ nuseven = nusevenofgamma(params, ushock, rho2, B2, numax, gammam, qe, c, m_p, m_
 nuten   = nutenofothers(params,nuseven,numax,nuc)
 nueight = nueightofothers(params,nuseven,numax,nuc)
 nusix   = nusixofothers(params,nuseven,numax,nuc)
-
-nu1  = gstable2.f_b(params,1,tobs,False)
-nu2  = gstable2.f_b(params,2,tobs,False)
-nu3  = gstable2.f_b(params,3,tobs,False)
-nu5  = gstable2.f_b(params,5,tobs,False)
-nu6  = gstable2.f_b(params,6,tobs,False)
-nu7  = gstable2.f_b(params,7,tobs,False)
-nu8  = gstable2.f_b(params,8,tobs,False)
-nu10 = gstable2.f_b(params,10,tobs,False)
-
 Fmax0 = Frad(gammam, ushock, B2, mswept, theta, d, params, numax, sigma_T, c, mu0, m_p, mJy)
 Fmax  = FmaxofFrad(params, nuseven, numax, nuc, Fmax0)
-F2    = gstable2.F_b_ext(params, 2, tobs)
-F11   = gstable2.F_b_ext(params, 11, tobs)
+
+nu1, nu2, nu3, nu5, nu6, nu7, nu8, nu10 = calcGS02spectrum_f_b(params,tobs)
+F2, F11 = calcGS02spectrum_F_b_ext(params,tobs)
 
 plotfig  = True
 plotzeta = True

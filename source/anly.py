@@ -1,5 +1,5 @@
-'''Define numerical functions for Duffell & Laskar (2018) and Laskar & Duffell (2018), 
-   henceforth DL18 and LD18, respectively'''
+'''Define numerical functions for Duffell & Laskar (2018) and Laskar & Duffell (2019), 
+   henceforth DL18 and LD19, respectively'''
 
 from numpy import log, pi, arange, sqrt, sin, cos, arctan
 
@@ -164,8 +164,8 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0, th
     $u$: mean 4-velocity of post-shock fluid
     $\theta$: instantaneous jet opening angle
     $m_{\rm swept}$: mass swept up by shock (in code units or in g, if physical=True)
-    $t$: elapsed lab-frame time (in code units, or in seconds if physical=True)
-    $t_{\rm obs}$: elapsed observer-frame time (in code units, or in seconds and including cosmological redshift if physical=True)
+    $t$: elapsed lab-frame time (in code units, or in days if physical=True)
+    $t_{\rm obs}$: elapsed observer-frame time (in code units, or in days and including cosmological redshift if physical=True)
     $r$: radius of the blastwave shock
     """
 
@@ -210,10 +210,10 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0, th
         
         if (physical):
             output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}\n".format\
-                      (r*R0, u, upeak, ushock, gamma, theta, mswept, t*t0, (1.+z)*t0*(t-r/c)/86400., (1.+z)*t0*t*(1.-mu)/86400., ushockfactor)
+                      (r*R0, u, upeak, ushock, gamma, theta, mswept, t*t0, (1.+z)*t0*(t-r/c)/86400., (1.+z)*t0*(t-r*mu/c)/86400., ushockfactor)
         else:
             output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}\n".format\
-                      (r, u, upeak, ushock, gamma, theta, mwept, t, t-r/c, t*(1.-mu), ushockfactor)
+                      (r, u, upeak, ushock, gamma, theta, mwept, t, t-r/c, t-r*mu/c, ushockfactor)
 
         outfile.write(output)
 
@@ -221,39 +221,3 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0, th
     from astropy.io import ascii as asciireader
     data = asciireader.read(filename)
     return data
-
-def Gammabeta_fit(k, t, t_jet, t_nr, t_sph, Gammajet, sj1=50., sj2=20., s_nr=20., s_sph=10., 
-                  G2=1.,G3=1.,kinkcor=1.):
-    #sj1 = 12.5*k+25.
-    pk = Pk(k)
-    qk = Qk(k)
-    G2 = 1.
-    Gamma_ev1 = -0.5*(3.-k)/(4.-k)                  # Blandford-McKee
-    Gamma_ev2 = -0.5*(3.-k)/(4.-k)*(1.+qk/pk)*G2    # post-jet break steep decline
-    Gamma_ev3 = -0.5/(1.+1./((3.-k)*(1.+qk/pk)))*G3 # post-jet break decline rate  
-    Gamma_ev4 = -1.0/(1.+2./((3.-k)*(1.+qk/pk)))    # post NR-transition decline rate
-    Gamma_ev5 = -(3.-k)/(5.-k)                      # spherical expansion
-    
-    # Calculate the kinkscale
-#    if (k == 0):   
-#        kinkscale = 2.3
-#    elif (k == 2):
-#        kinkscale = 2.3
-    Gl = -Gamma_ev1; Gr = -Gamma_ev3
-    kinkscale = ((2*Gr+1.)/(2*Gl+1.))**((2*Gl+1.)/(2*Gr-2*Gl)) * kinkcor
-    t_jet2    = t_jet * kinkscale
-
-    # Jet break
-    jeteffect   = ((t / t_jet)**(-1*sj1*Gamma_ev1) + \
-                   (t / t_jet)**(-1*sj1*Gamma_ev2))**(-1/sj1)
-    sign_jet    = sign(Gamma_ev2 - Gamma_ev3)
-    jeteffect2  = (1.+(t/t_jet2)**(sj2*sign_jet*(Gamma_ev2-Gamma_ev3)))**(-1./(sj2*sign_jet))
-
-    # Non-relativistic transition
-    sign_nr     = sign(Gamma_ev3 - Gamma_ev4)
-    nreffect    = (1.+(t/t_nr)**(s_nr*sign_nr*(Gamma_ev3-Gamma_ev4)))**(-1./(s_nr*sign_nr))
-    
-    # Spherical expansion
-    sign_sph    = sign(Gamma_ev4 - Gamma_ev5)
-    sph_effect  = (1.+(t/t_sph)**(s_sph*sign_sph*(Gamma_ev4-Gamma_ev5)))**(-1./(s_sph*sign_sph))
-    return Gammajet*jeteffect*jeteffect2*nreffect*sph_effect
