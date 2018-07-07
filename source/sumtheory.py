@@ -2,28 +2,31 @@
 plotfig = True
 figtype = '.eps'
 fontsize = 18
-offaxis  = False
+offaxis  = True
+#offaxis  = False
 # Initial Lorentz factor
-G0       = 1e7
+G0       = 10
 # Initial Jet opening angle in radians
-theta0   = 5.*np.pi/180. #0.26 #10.*np.pi/180.#0.05
+theta0   = 0.08 #0.26 #10.*np.pi/180.#0.05
 # Off-axis viewing angle, only used if offaxis = True
-thetaobs = 0.5
-Omega    = 4.*pi*(sin(0.5*theta0)**2.)
+thetaobs = 0.35
+Omega0   = 4.*pi*(sin(0.5*theta0)**2.)
 
 from physparams import Physparams
-params = Physparams(\
+params_GW = Physparams(\
         k     = 0,
-        p     = 2.1,
+        p     = 2.16,
         z     = 0.01,
         e_e   = 0.1,
-        e_b   = 0.01,
-        n_0   = 1.0,#1e-3,
+        e_b   = 1e-4,
+        n_0   = 6e-4,
         Astar = 0.1,
-        E52   = 1.0,#1e-2*4*np.pi/Omega,
+        E52   = 1e-2*4*np.pi/Omega0,
         t_jet = 1.0,
         A_B   = 0.0,
         zeta  = 1.0)
+
+params = params_GW
 
 # Set some variables for the hydrodynamic calculation
 k      = params.k
