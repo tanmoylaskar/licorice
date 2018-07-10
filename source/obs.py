@@ -314,6 +314,17 @@ def Urad(params, nu, fnu, nutilde, m_p, c, DL, E):
     integral = trapz((fnu*nu)[sel], nu[sel])
     return prefactor * integral
 
+def saveobs(filename, t, tobs, X, ufluid, ushock, e2, rho2, B2, gammam, gammac, nua, numax, nuc, nufive, nuseven, nuten, nueight, nusix, Fmax0, Fmax):
+    if filename is None:
+        filename = 'obs.txt'
+    outfile = open(filename,'w')
+    headerline = "tlab            tobs            X               ufluid          ushock          e2              rho2            B2               gammam        gammac         nua            numax          nuc            nufive         nuseven        nuten          nueight        nusix          Fmax0          Fmax\n"
+    outfile.write(headerline)
+    for i in arange(len(X)):
+        output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}   {:8.6e}\n".format(t[i],tobs[i],X[i],ufluid[i],ushock[i],e2[i],rho2[i],B2[i],gammam[i],gammac[i],nua[i],numax[i],nuc[i],nufive[i],nuseven[i],nuten[i],nueight[i],nusix[i],Fmax0[i],Fmax[i])
+        outfile.write(output)
+    outfile.close()
+
 useSI = True
 # Constants
 if (useSI):
@@ -368,13 +379,14 @@ nuseven = nusevenofgamma(params, ushock, rho2, B2, numax, gammam, qe, c, m_p, m_
 nuten   = nutenofothers(params,nuseven,numax,nuc)
 nueight = nueightofothers(params,nuseven,numax,nuc)
 nusix   = nusixofothers(params,nuseven,numax,nuc)
-Fmax0 = Frad(gammam, ushock, B2, mswept, theta, thetaobs, d, params, numax, sigma_T, c, mu0, m_p, mJy)
-Fmax  = FmaxofFrad(params, nuseven, numax, nuc, Fmax0)
+Fmax0   = Frad(gammam, ushock, B2, mswept, theta, thetaobs, d, params, numax, sigma_T, c, mu0, m_p, mJy)
+Fmax    = FmaxofFrad(params, nuseven, numax, nuc, Fmax0)
 
 nu1, nu2, nu3, nu5, nu6, nu7, nu8, nu10 = calcGS02spectrum_f_b(params,tobs)
 F2, F11 = calcGS02spectrum_F_b_ext(params,tobs)
+saveobs('obs.txt',tlab,tobs,X,ufluid,ushock,e2,rho2,B2,gammam,gammac,nua,numax,nuc,nufive,nuseven,nuten,nueight,nusix,Fmax0,Fmax)
 
-plotzeta = True
+plotzeta = plotfig
 if plotfig:
     figure()
     subplot(211)

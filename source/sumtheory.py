@@ -1,5 +1,5 @@
 # Global variables for calculation and plotting
-plotfig = True
+plotfig = False
 figtype = '.eps'
 fontsize = 18
 offaxis  = True
