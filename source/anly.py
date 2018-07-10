@@ -210,7 +210,7 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0, th
         
         if (physical):
             output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}\n".format\
-                      (r*R0, u, upeak, ushock, gamma, theta, mswept, t*t0, (1.+z)*t0*(t-r/c)/86400., (1.+z)*t0*(t-r*mu/c)/86400., ushockfactor)
+                      (r*R0, u, upeak, ushock, gamma, theta, mswept, t*t0/86400., (1.+z)*t0*(t-r/c)/86400., (1.+z)*t0*(t-r*mu/c)/86400., ushockfactor)
         else:
             output = "{:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}    {:8.6e}     {:8.6e}  {:8.6e}   {:8.6e}\n".format\
                       (r, u, upeak, ushock, gamma, theta, mwept, t, t-r/c, t-r*mu/c, ushockfactor)

@@ -1,4 +1,4 @@
-applyIC = False
+from physparams import Physparams
 
 def R(params, t):
     '''The blast wave radius in cm at time, t from the BM solution'''
@@ -124,7 +124,7 @@ def gammaofnu(params, nu, t):
 
 def Y(params):
     '''The Compton Y-parameter in fast cooling'''
-    if (not(applyIC)):
+    if (not(params.applyIC)):
         return 0
     from numpy import sqrt
     eta = 1.0
@@ -132,11 +132,16 @@ def Y(params):
 
 def Y_slow(params,t):
     '''The Compton Y-parameter for slow cooling'''
+    applyIC = params.applyIC
+    
     if (not(applyIC)):
         return 0    
     import numpy as np
     numax   = f_b(params,2,t)#np.sqrt(f_b(params,2,t)*f_b(params,4,t)) # An average numax that is between nu2 and nu4
-    nuc_syn = f_b(params,3,t,applyIC=False) # The cooling frequency in the absence of IC cooling
+    from copy import deepcopy
+    params_noIC = deepcopy(params)
+    params_noIC.applyIC = False
+    nuc_syn = f_b(params_noIC,3,t) # The cooling frequency in the absence of IC cooling
     fast = nuc_syn < numax
     A = (nuc_syn/numax)**(-0.5*(params.p-2.))        
     eta_min = 1e-6
@@ -414,7 +419,7 @@ def e_ebar(params):
     x = e_e*(p-2)/(p-1.)
     return x
 
-def f_b(params, b = 1, t = 1.0, applyIC = True):
+def f_b(params, b, t):
     """Break frequency for parameters 'params', break number, 'b' and at time, t (days) """
     k = params.k
     p = params.p
@@ -427,7 +432,8 @@ def f_b(params, b = 1, t = 1.0, applyIC = True):
     E52 = params.E52 * zeta
     t_jet = params.t_jet
     t_nr  = params.t_nr
-
+    applyIC = params.applyIC
+    
     from numpy import e                 
     if k == 0:
         sj = s_jet(params,b)    # This restriction is needed since s_jet is not defined otherwise in this code

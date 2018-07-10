@@ -70,10 +70,11 @@ def nucofgamma(params, ushock, gammac, B, qe, m_e, c, useSI):
     return gsscalefactor*nuofgamma(params, ushock, gammac, B, qe, m_e, c, useSI)
 
 def nuofgamma(params, ushock, gammae, B, qe, m_e, c, useSI):
-        if (useSI):
-            return Gammaofu(ushock)*(1.+betaofu(ushock))*gammae**2.*qe*B/(2.*pi*m_e*(1.+z))
-        else:
-            return Gammaofu(ushock)*(1.+betaofu(ushock))*gammae**2.*qe*B/(2.*pi*m_e*c*(1.+z))
+    from numpy import pi
+    if (useSI):
+        return Gammaofu(ushock)*(1.+betaofu(ushock))*gammae**2.*qe*B/(2.*pi*m_e*(1.+z))
+    else:
+        return Gammaofu(ushock)*(1.+betaofu(ushock))*gammae**2.*qe*B/(2.*pi*m_e*c*(1.+z))
 
 def nuaofgamma(params, ushock, gammamin, rshock, rho1, B, X, qe, eps0, c, m_p, m_e, useSI):
     G    = Gammaofu(ushock)
@@ -182,10 +183,11 @@ def nuelevenofnuc(params, nuc):
         gsscalefactor = 0.532/((3.45-p)*exp(0.45*p))
     return gsscalefactor*nuc
     
-def Frad(gammamin, ush, B, mswept, theta, DL, params, numax, sigma_T, c, mu0, m_p, mJy):
+def Frad(gammamin, ush, B, mswept, theta, thetaobs, DL, params, numax, sigma_T, c, mu0, m_p, mJy):
+    from numpy import pi
     Ne = mswept/m_p
     Omega = 4.*pi*(sin(0.5*theta)**2.)
-    zeta  = zeta_beam(ush, offaxis=offaxis)
+    zeta  = zeta_beam(ush, theta, thetaobs, offaxis)
     return mJy*Gammaofu(ush)**2*(1.+betaofu(ush))*(4./3.)*sigma_T*c*(gammamin**2)*(B**2/(2.*mu0))*Ne/(4*pi*DL**2*numax)/Omega * zeta #/ (1. + 2*pi/(Omega*Gammaofu(ush)**2))
 
 def FmaxofFrad(params, nuseven, numax, nuc, Frad):
@@ -274,19 +276,24 @@ def spectrum_all(params, nua, num, nuc, nufive, nuseven, Fmax, q):
     F = (spectrum4*fastcooling4 + spectrum5*fastcooling5 + spectrum1*slowcooling) * opticallythin + spectrum2 * opticallythick
     return F
 
-def zeta_beam(ush, offaxis=False):
+def zeta_beam(ush, theta, thetaobs, offaxis):
     '''Calculate the beaming correction'''
-    # Calculate beaming correction
+    from numpy import pi
+    
+    # Calculate beaming correction    
     w = 3
     Gammaf = Gammaofu(ush)
     betaf  = betaofu(ush)    
 
     if (offaxis):
         Omega = 4.*pi*(sin(0.5*theta)**2.)
-        mu                = 1.-cos(theta)
+        mu                = cos(thetaobs)
         one_minus_beta    = 1./(Gammaf**2*(1.+betaf))
         one_minus_beta_mu = (1.-mu**2 + mu**2/Gammaf**2)/(1.+betaf*mu)
-        zeta_beam_jet     = (Omega / (4.*np.pi)) * (one_minus_beta/one_minus_beta_mu)**4
+        zeta_beam_jet     = (Omega / (4.*pi)) * (one_minus_beta/one_minus_beta_mu)**4
+        #zeta_max = 0.0025
+        #zeta_beam_jet = zeta_max*(ush-1.1)/(0.9-1.1) * ((ush>=0.9) & (ush<=1.1))\
+        #                + zeta_max*(ush < 0.9)
     else:    
         inv_one_minus_beta = Gammaf**2*(1.+betaf)
         zeta_beam_jet = (inv_one_minus_beta**w - (1./(1.-betaf*cos(theta)))**w) / \
@@ -300,6 +307,7 @@ def zeta_beam(ush, offaxis=False):
     return zeta_beam_jet #+ zeta_beam_counterjet
     
 def Urad(params, nu, fnu, nutilde, m_p, c, DL, E):
+    from numpy import pi
     k = params.k   
     prefactor = 48.*pi*m_p*c*DL**2/((17-4.*k)*E)
     sel = nu < nutilde
@@ -309,6 +317,7 @@ def Urad(params, nu, fnu, nutilde, m_p, c, DL, E):
 useSI = True
 # Constants
 if (useSI):
+    from numpy import pi
     c      = 3e8                             # Speed of light in m/s
     qe     = 1.6021e-19                      # Fundamental charge
     m_p    = 1.673e-27                       # Proton mass in kg
@@ -359,32 +368,34 @@ nuseven = nusevenofgamma(params, ushock, rho2, B2, numax, gammam, qe, c, m_p, m_
 nuten   = nutenofothers(params,nuseven,numax,nuc)
 nueight = nueightofothers(params,nuseven,numax,nuc)
 nusix   = nusixofothers(params,nuseven,numax,nuc)
-Fmax0 = Frad(gammam, ushock, B2, mswept, theta, d, params, numax, sigma_T, c, mu0, m_p, mJy)
+Fmax0 = Frad(gammam, ushock, B2, mswept, theta, thetaobs, d, params, numax, sigma_T, c, mu0, m_p, mJy)
 Fmax  = FmaxofFrad(params, nuseven, numax, nuc, Fmax0)
 
 nu1, nu2, nu3, nu5, nu6, nu7, nu8, nu10 = calcGS02spectrum_f_b(params,tobs)
 F2, F11 = calcGS02spectrum_F_b_ext(params,tobs)
 
-plotfig  = True
 plotzeta = True
 if plotfig:
     figure()
     subplot(211)
-    loglog(tobs,numax,'g-'); loglog(tobs,nu2,'g--')
-    loglog(tobs,nuc,'b-');   loglog(tobs,nu3,'b--')
-    loglog(tobs,nua,'r-');   loglog(tobs,nu1,'r--')
-    loglog(tobs,nufive,'C0',ls='-'); loglog(tobs, nu5, 'C0',ls='--')
-    sel7 = tobs < tjet
-    loglog(tobs[sel7],nuseven[sel7],'C1',ls='-'); loglog(tobs[sel7], nu7[sel7],  'C1',ls='--')
-    loglog(tobs[sel7],nuten[sel7],'C2',ls='-');   loglog(tobs[sel7], nu10[sel7], 'C2',ls='--')
-    loglog(tobs[sel7],nueight[sel7],'C4',ls='-'); loglog(tobs[sel7], nu8[sel7],  'C4',ls='--')
-    loglog(tobs[sel7],nusix[sel7],'C5',ls='-');   loglog(tobs[sel7], nu6[sel7],  'C5',ls='--')
+    artistlist = []
+    labels = [r'$\nu_{2}$',r'$\nu_3$',r'$\nu_1$',r'$\nu_5$',r'$\nu_7$',r'$\nu_{10}$',r'$\nu_{8}$',r'$\nu_{6}$']
+    ar = loglog(tobs,numax,'g-');         artistlist.append(ar[0]); loglog(tobs,nu2,'g--')
+    ar = loglog(tobs,nuc,'b-');           artistlist.append(ar[0]); loglog(tobs,nu3,'b--')
+    ar = loglog(tobs,nua,'r-');           artistlist.append(ar[0]); loglog(tobs,nu1,'r--')
+    ar = loglog(tobs,nufive,'C0',ls='-'); artistlist.append(ar[0]); loglog(tobs, nu5, 'C0',ls='--')
+    sel7 = tobs >0# < tjet
+    ar = loglog(tobs[sel7],nuseven[sel7],'C1',ls='-'); artistlist.append(ar[0]); loglog(tobs[sel7], nu7[sel7],  'C1',ls='--')
+    ar = loglog(tobs[sel7],nuten[sel7],'C2',ls='-');   artistlist.append(ar[0]); loglog(tobs[sel7], nu10[sel7], 'C2',ls='--')
+    ar = loglog(tobs[sel7],nueight[sel7],'C4',ls='-'); artistlist.append(ar[0]); loglog(tobs[sel7], nu8[sel7],  'C4',ls='--')
+    ar = loglog(tobs[sel7],nusix[sel7],'C5',ls='-');   artistlist.append(ar[0]); loglog(tobs[sel7], nu6[sel7],  'C5',ls='--')
     
     ylabel("Frequency")
     xlabel("Observer time (days)")
     axvline(tjet,color='k',ls='-')
     axvline(tnr, color='k',ls='--')
     axvline(tsph,color='k',ls=':')
+    legend(artistlist,labels,loc='best')
 
     subplot(212)
     plot(tobs,(numax/nu2-1.)*100.,'g')
@@ -413,10 +424,11 @@ if plotfig:
     lw = 3; fontsize = 18
     
     if plotzeta:
+        from numpy import pi
         fig, ax1 = plt.subplots(1)
         zetacolor = 'red'; zetals = '-'; Omegacolor = 'k'; Omegals = '--'; approxcolor = 'orange'; approxls = '-.'
         artistlist = []; namelist = [r'Beaming correction, $\zeta_{\rm beam}$',r'Jet solid angle, $\Omega/4\pi$']
-        zeta       = zeta_beam(ushock, offaxis=offaxis)
+        zeta       = zeta_beam(ushock, theta, thetaobs, offaxis)
         Omega      = 4.*pi*sin(theta/2)**2
         Omegaobs   = pi/Gammaofu(ushock)**2
         zetaapprox = 1-(Omegaobs/Omega)

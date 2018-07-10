@@ -140,14 +140,14 @@ def calcdiagnostics(k):
 
 def calcGS02spectrum_f_b(params,tobs):
     import gstable2
-    nu1  = gstable2.f_b(params,1,tobs,False)
-    nu2  = gstable2.f_b(params,2,tobs,False)
-    nu3  = gstable2.f_b(params,3,tobs,False)
-    nu5  = gstable2.f_b(params,5,tobs,False)
-    nu6  = gstable2.f_b(params,6,tobs,False)
-    nu7  = gstable2.f_b(params,7,tobs,False)
-    nu8  = gstable2.f_b(params,8,tobs,False)
-    nu10 = gstable2.f_b(params,10,tobs,False)
+    nu1  = gstable2.f_b(params,1,tobs)
+    nu2  = gstable2.f_b(params,2,tobs)
+    nu3  = gstable2.f_b(params,3,tobs)
+    nu5  = gstable2.f_b(params,5,tobs)
+    nu6  = gstable2.f_b(params,6,tobs)
+    nu7  = gstable2.f_b(params,7,tobs)
+    nu8  = gstable2.f_b(params,8,tobs)
+    nu10 = gstable2.f_b(params,10,tobs)
     return nu1, nu2, nu3, nu5, nu6, nu7, nu8, nu10
 
 def calcGS02spectrum_F_b_ext(params,tobs):
