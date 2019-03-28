@@ -105,7 +105,7 @@ def get_dt(c, u, dr):
 #    theta_min = min(theta,theta_Gamma)
 #    return r*(1.-cos(theta_min))/c
 
-def get_X_from_ufluid(ufluid, r=4.):
+def get_X_from_ufluid(ufluid, r):
     """Return the shock compression given the adiabatic index ratio, $r$ (LD18, eq 16)"""
     X = r*sqrt(1.+ufluid**2) + r-1.
     return X
@@ -192,7 +192,7 @@ def calcall(theta0 = 0.14, k = 2.0, A = 1.0, E52 = 1.0, z = 1.0, G0 = 1000.0, th
         f = get_f(r, theta0, A, k, M0, G0, theta_rhoads=theta_rhoads, modeltype=modeltype) # calculate f
         u = get_u_from_f(f, G0)                # ufluid_average (LD18, eq 19 and 20) in units of c
         upeak = get_upeak_from_f(f, G0, k)     # 4-velocity of the post-shock fluid in units of c
-        X      = get_X_from_ufluid(upeak)      # post-shock density compression factor (LD18, eq 7)
+        X      = get_X_from_ufluid(upeak, 4)      # post-shock density compression factor (LD18, eq 7)
         ushockfactor = get_ushock_factor(X, 4) # Taking r = 4 (relativistic equation of state for shocked fluid)
         ushock = ushockfactor*upeak            # 4-velocity of the shock
  

@@ -1,11 +1,11 @@
 # Global variables for calculation and plotting
-plotfig = False
-figtype = '.eps'
+plotfig = True
+figtype = '.png'
 fontsize = 18
-offaxis  = True
+offaxis  = False
 #offaxis  = False
 # Initial Lorentz factor
-G0       = 10
+G0       = 1000
 # Initial Jet opening angle in radians
 theta0   = 0.08#3.03*np.pi/180.#0.05
 # Off-axis viewing angle, only used if offaxis = True
@@ -69,7 +69,7 @@ params_130606A = Physparams(\
         zeta  = 1.0,
         applyIC = False)
 
-params = params_Mooley
+params = params#_Mooley
 
 # Set some variables for the hydrodynamic calculation
 k      = params.k
